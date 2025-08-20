@@ -5,16 +5,32 @@
   "scripts": {
     "test": "playwright test",
     "test:smoke": "playwright test tests/smoke",
-    "test:resources": "playwright test tests/resources",
-    "test:user": "playwright test tests/user",
+    "test:resources": "playwright test tests/reqres/resources.spec.js",
+    "test:user": "playwright test tests/reqres/usersFlow.spec.js",
     "lint": "eslint .",
     "format": "eslint . --fix",
     "allure:report": "allure generate --clean ./allure-results && allure open ./allure-report"
+  },
+  "playwright": {
+    "reporter": [
+      [
+        "list"
+      ],
+      [
+        "allure-playwright",
+        {
+          "outputFolder": "allure-results"
+        }
+      ]
+    ],
+    "timeout": 30000,
+    "workers": 3
   },
   "devDependencies": {
     "@playwright/test": "^1.47.2",
     "allure-commandline": "^2.34.1",
     "allure-playwright": "^2.0.0-beta.24",
+    "chalk": "^5.6.0",
     "eslint": "^9.9.0"
   }
 }

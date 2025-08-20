@@ -15,6 +15,7 @@ jobs:
       BASE_URL: https://reqres.in
       ACCEPT_LANGUAGE: en-US
       RETRY_MAX: "2"
+      LOG_LEVEL: info
 
     steps:
       - name: Checkout
@@ -26,13 +27,13 @@ jobs:
           node-version: "20"
           cache: "npm"
 
-      - name: Install deps
+      - name: Install dependencies
         run: npm ci
 
-      - name: Install Playwright browsers
+      - name: Install Playwright browsers (safe even for API-only)
         run: npx playwright install --with-deps
 
-      - name: Run tests (Playwright)
+      - name: Run tests
         run: npm test
 
       - name: Upload Allure results
@@ -43,7 +44,7 @@ jobs:
           path: allure-results/**
           if-no-files-found: warn
 
-  # --- OPTIONAL: Publish Allure HTML to GitHub Pages (main/master only) ---
+  # --- OPTIONAL: publish Allure HTML to GitHub Pages ---
   publish-allure:
     if: ${{ github.event_name != 'pull_request' }}
     needs: tests
@@ -62,7 +63,6 @@ jobs:
           name: allure-results
           path: allure-results
 
-      # Generate Allure HTML using a maintained action
       - name: Generate Allure Report
         uses: simple-elf/allure-report-action@v1.8
         with:
@@ -70,7 +70,6 @@ jobs:
           allure_report: allure-report
           keep_reports: 1
 
-      # Publish to GitHub Pages
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
