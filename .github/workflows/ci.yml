@@ -1,4 +1,4 @@
-name: CI (JS API)
+name: CI (Playwright JS + Allure)
 
 on:
   push:
@@ -7,25 +7,74 @@ on:
   workflow_dispatch:
 
 jobs:
-  test:
+  tests:
+    name: Run Playwright API tests
     runs-on: ubuntu-latest
+
+    env:
+      BASE_URL: https://reqres.in
+      ACCEPT_LANGUAGE: en-US
+      RETRY_MAX: "2"
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          node-version: '20'
-          cache: 'npm'
-      - run: npm ci
-      - name: Run tests
-        env:
-          BASE_URL: https://reqres.in
-          ACCEPT_LANGUAGE: en-US
-          RETRY_MAX: '2'
-        run: npx playwright test
-      - name: Upload allure-results
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Run tests (Playwright)
+        run: npm test
+
+      - name: Upload Allure results
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: allure-results
           path: allure-results/**
           if-no-files-found: warn
+
+  # --- OPTIONAL: Publish Allure HTML to GitHub Pages (main/master only) ---
+  publish-allure:
+    if: ${{ github.event_name != 'pull_request' }}
+    needs: tests
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download allure-results artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: allure-results
+          path: allure-results
+
+      # Generate Allure HTML using a maintained action
+      - name: Generate Allure Report
+        uses: simple-elf/allure-report-action@v1.8
+        with:
+          allure_results: allure-results
+          allure_report: allure-report
+          keep_reports: 1
+
+      # Publish to GitHub Pages
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: allure-report
+
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4

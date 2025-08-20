@@ -6,11 +6,12 @@ const authRequest = (email, password) => ({ email, password });
 const userRequest = (name, job) => ({ name, job });
 
 export class UseApiSteps {
-  constructor(request, testInfo, baseURL) {
+  constructor(request, testInfo, baseURL, token) {
     this.request = request;
     this.testInfo = testInfo;
     this.baseURL = baseURL;
-  }
+    this.token = token;
+}
 
   // ---------- Auth
   async register(email, password) {
